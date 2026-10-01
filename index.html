@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Birthday Yasir - Interactive Book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Great+Vibes&family=Poppins:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ========================================
+       RESET & VARIABLES
+       ======================================== */
+    
+    :root {
+      --gold: #d4a85d;
+      --gold-light: #f4e4c1;
+      --navy: #2c3e50;
+      --navy-dark: #1a2332;
+      --cream: #f5f1e8;
+      --wood-light: #8b6f47;
+      --wood-dark: #5a3e1f;
+      --rose: #c4a69d;
+      --burgundy: #8b3a3a;
+      --shadow-soft: rgba(0, 0, 0, 0.15);
+      --shadow-dark: rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      color: #333;
+      overflow: hidden;
+    }
+
+    /* ========================================
+       BACKGROUND & SCENE
+       ======================================== */
+
+    body {
+      background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><defs><filter id="blur"><feGaussianBlur in="SourceGraphic" stdDeviation="40"/></filter></defs><rect fill="%23f5f1e8" width="1920" height="1080"/></svg>');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .background-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        linear-gradient(rgba(0,0,0,0.08), rgba(0,0,0,0.08)),
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23333" width="50" height="50"/><rect fill="%23333" x="50" width="50" height="50" y="50"/><rect fill="%23333" x="50" y="50" width="50" height="50"/><rect fill="%23333" width="50" height="50" y="50"/></svg>');
+      background-size: auto, 4px 4px;
+      opacity: 0.02;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .scene-container {
+      position: relative;
+      width: min(1400px, 95vw);
+      height: min(800px, 95vh);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      border-radius: 24px;
+      box-shadow: 
+        0 30px 80px var(--shadow-dark),
+        inset 0 0 80px rgba(255,255,255,0.4);
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    .scene-bg {
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.98) contrast(1.02);
+      z-index: 1;
+    }
+
+    /* ========================================
+       BOOK CONTAINER & 3D SETUP
+       ======================================== */
+
+    .book-container {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 420px;
+      height: 560px;
+      perspective: 1500px;
+      z-index: 20;
+      cursor: pointer;
+    }
+
+    .book {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: all 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .book.flipping {
+      animation: pageFlip 1s ease-in-out forwards;
+    }
+
+    /* ========================================
+       BOOK PAGES & COVERS
+       ======================================== */
+
+    .page {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: var(--cream);
+      border: 2px solid var(--gold);
+      border-radius: 8px;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transform-style: preserve-3d;
+      box-shadow: 
+        inset 0 0 20px rgba(0,0,0,0.05),
+        0 15px 35px var(--shadow-dark);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      text-align: center;
+    }
+
+    /* Front Cover */
+    .page.cover-front {
+      background: linear-gradient(135deg, #3a5f7d 0%, #5a7f9d 50%, #4a6f8d 100%);
+      border: 3px solid var(--gold);
+      z-index: 50;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: var(--cream);
+    }
+
+    .page.cover-front::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 500"><defs><pattern id="floral" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="5" fill="%23d4a85d" opacity="0.3"/><circle cx="70" cy="70" r="5" fill="%23d4a85d" opacity="0.2"/></pattern></defs><rect fill="url(%23floral)" width="400" height="500"/></svg>');
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .cover-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 4.5rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: var(--gold-light);
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      z-index: 2;
+      margin: 0;
+      line-height: 1;
+    }
+
+    .cover-subtitle {
+      font-family: 'Great Vibes', cursive;
+      font-size: 1.5rem;
+      color: var(--gold-light);
+      margin-top: 20px;
+      z-index: 2;
+      opacity: 0.9;
+    }
+
+    .cover-decoration {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      opacity: 0.6;
+      z-index: 2;
+    }
+
+    .cover-decoration.top-left {
+      top: 20px;
+      left: 20px;
+      border: 2px solid var(--gold-light);
+      border-right: none;
+      border-bottom: none;
+      border-radius: 12px;
+    }
+
+    .cover-decoration.bottom-right {
+      bottom: 20px;
+      right: 20px;
+      border: 2px solid var(--gold-light);
+      border-left: none;
+      border-top: none;
+      border-radius: 12px;
+    }
+
+    /* Inner Pages */
+    .page.inner {
+      background: linear-gradient(180deg, #fefdf9 0%, #f5f1e8 100%);
+      color: var(--navy-dark);
+      z-index: 40;
+      transform: translateZ(1px) rotateY(0deg);
+    }
+
+    .page.inner.hidden {
+      transform: translateZ(-1px) rotateY(-90deg);
+      z-index: 30;
+    }
+
+    .page-content {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .page-image {
+      width: 280px;
+      height: 160px;
+      border-radius: 8px;
+      background-size: cover;
+      background-position: center;
+      background-color: #e0d5c7;
+      border: 2px solid var(--gold);
+      box-shadow: 0 8px 20px var(--shadow-soft);
+      object-fit: cover;
+    }
+
+    .page-text {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--navy-dark);
+      max-width: 100%;
+      word-wrap: break-word;
+    }
+
+    .page-text.title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin: 0;
+    }
+
+    .page-text.message {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 500;
+      color: var(--burgundy);
+    }
+
+    .page-text.subtitle {
+      font-size: 0.95rem;
+      color: var(--wood-light);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* Back Cover */
+    .page.cover-back {
+      background: linear-gradient(135deg, #5a7f9d 0%, #3a5f7d 50%, #4a6f8d 100%);
+      color: var(--cream);
+      border: 3px solid var(--gold);
+      z-index: 25;
+      justify-content: flex-end;
+      padding: 40px 30px;
+    }
+
+    .back-cover-text {
+      font-size: 0.9rem;
+      line-height: 1.8;
+      opacity: 0.85;
+      text-align: center;
+    }
+
+    /* ========================================
+       PAGE NAVIGATION
+       ======================================== */
+
+    .page-nav {
+      position: absolute;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 15px;
+      z-index: 60;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 12px 20px;
+      border-radius: 50px;
+      box-shadow: 0 8px 25px var(--shadow-dark);
+    }
+
+    .nav-btn {
+      width: 40px;
+      height: 40px;
+      border: 2px solid var(--gold);
+      border-radius: 50%;
+      background: white;
+      color: var(--gold);
+      font-weight: bold;
+      font-size: 1.1rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: var(--gold);
+      color: white;
+      transform: scale(1.1);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .page-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      color: var(--navy);
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* ========================================
+       ADMIN PANEL
+       ======================================== */
+
+    .admin-btn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--gold), #e0b866);
+      color: white;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      box-shadow: 0 8px 25px var(--shadow-dark);
+      z-index: 70;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .admin-btn:hover {
+      transform: scale(1.12) translateY(-4px);
+      box-shadow: 0 12px 35px var(--shadow-dark);
+    }
+
+    .admin-panel {
+      position: fixed;
+      right: -420px;
+      top: 0;
+      width: 420px;
+      height: 100%;
+      background: white;
+      box-shadow: -8px 0 40px var(--shadow-dark);
+      z-index: 80;
+      transition: right 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      overflow-y: auto;
+      padding: 30px 25px;
+    }
+
+    .admin-panel.open {
+      right: 0;
+    }
+
+    .admin-panel::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .admin-panel::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .admin-panel::-webkit-scrollbar-thumb {
+      background: var(--gold);
+      border-radius: 4px;
+    }
+
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--gold);
+      padding-bottom: 16px;
+    }
+
+    .admin-header h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--navy);
+      font-size: 1.6rem;
+      margin: 0;
+    }
+
+    .admin-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      color: var(--navy);
+      cursor: pointer;
+      padding: 0;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s ease;
+    }
+
+    .admin-close-btn:hover {
+      color: var(--gold);
+    }
+
+    .admin-form {
+      display: grid;
+      gap: 24px;
+    }
+
+    .form-section {
+      background: #f9f7f2;
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 4px solid var(--gold);
+    }
+
+    .form-section h3 {
+      color: var(--navy);
+      font-size: 1.05rem;
+      margin: 0 0 16px 0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      color: var(--navy-dark);
+      font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212, 168, 93, 0.1);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      overflow: hidden;
+      border-radius: 6px;
+    }
+
+    .file-input-wrapper input[type="file"] {
+      display: none;
+    }
+
+    .file-input-label {
+      display: block;
+      padding: 12px;
+      background: linear-gradient(135deg, #f0e8dd, #e8dfd2);
+      color: var(--navy);
+      text-align: center;
+      border-radius: 6px;
+      border: 2px dashed var(--gold);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .file-input-label:hover {
+      background: linear-gradient(135deg, #e8dfd2, #e0d5c7);
+      border-color: #e0b866;
+    }
+
+    .admin-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 24px;
+      border-top: 2px solid var(--gold);
+      padding-top: 24px;
+    }
+
+    .admin-btn-primary,
+    .admin-btn-secondary {
+      padding: 12px 16px;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 0.85rem;
+    }
+
+    .admin-btn-primary {
+      background: linear-gradient(135deg, var(--gold), #e0b866);
+      color: white;
+    }
+
+    .admin-btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(212, 168, 93, 0.4);
+    }
+
+    .admin-btn-secondary {
+      background: #f0e8dd;
+      color: var(--navy);
+      border: 1px solid #ddd;
+    }
+
+    .admin-btn-secondary:hover {
+      background: #e8dfd2;
+      border-color: var(--gold);
+    }
+
+    /* ========================================
+       RESPONSIVE DESIGN
+       ======================================== */
+
+    @media (max-width: 1024px) {
+      .book-container {
+        width: 360px;
+        height: 480px;
+      }
+
+      .page {
+        padding: 30px;
+      }
+
+      .cover-title {
+        font-size: 3.5rem;
+      }
+
+      .page-nav {
+        bottom: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .scene-container {
+        width: 98vw;
+        height: 98vh;
+        border-radius: 12px;
+      }
+
+      .book-container {
+        width: 280px;
+        height: 380px;
+      }
+
+      .page {
+        padding: 24px;
+        font-size: 0.95rem;
+      }
+
+      .cover-title {
+        font-size: 2.8rem;
+      }
+
+      .page-text.title {
+        font-size: 1.6rem;
+      }
+
+      .page-text.message {
+        font-size: 1.3rem;
+      }
+
+      .page-image {
+        width: 200px;
+        height: 120px;
+      }
+
+      .admin-panel {
+        width: 100%;
+        right: -100%;
+      }
+
+      .admin-btn {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+        bottom: 20px;
+        right: 20px;
+      }
+
+      .admin-actions {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page {
+        padding: 20px;
+      }
+
+      .cover-title {
+        font-size: 2rem;
+      }
+
+      .page-text.title {
+        font-size: 1.2rem;
+      }
+
+      .page-text.message {
+        font-size: 1rem;
+      }
+
+      .page-image {
+        width: 160px;
+        height: 100px;
+      }
+
+      .admin-header h2 {
+        font-size: 1.2rem;
+      }
+
+      .form-section {
+        padding: 12px;
+      }
+    }
+
+    /* ========================================
+       ANIMATIONS
+       ======================================== */
+
+    @keyframes pageFlip {
+      0% {
+        transform: rotateY(0deg);
+      }
+      50% {
+        transform: rotateY(90deg);
+      }
+      100% {
+        transform: rotateY(0deg);
+      }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.6s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Background Overlay -->
+  <div class="background-overlay"></div>
+
+  <!-- Main Scene Container -->
+  <div class="scene-container" id="sceneContainer">
+    <!-- Background Image -->
+    <div class="scene-bg" id="sceneBg"></div>
+
+    <!-- Book Container -->
+    <div class="book-container" id="bookContainer">
+      <div class="book" id="book">
+        <!-- Front Cover -->
+        <div class="page cover-front" id="page0">
+          <div class="cover-decoration top-left"></div>
+          <div class="cover-subtitle">Welcome to</div>
+          <h1 class="cover-title" id="coverTitle">YASIR</h1>
+          <p class="cover-subtitle">A Birthday Celebration</p>
+          <div class="cover-decoration bottom-right"></div>
+        </div>
+
+        <!-- Page 1 -->
+        <div class="page inner hidden" id="page1">
+          <div class="page-content">
+            <h2 class="page-text title" id="page1Title">Happy Birthday!</h2>
+            <p class="page-text message" id="page1Message">روژ بونا تە پیروز بیت یاسر</p>
+            <p class="page-text" id="page1Text">Wishing you a day filled with joy, laughter, and beautiful moments.</p>
+          </div>
+        </div>
+
+        <!-- Page 2 -->
+        <div class="page inner hidden" id="page2">
+          <div class="page-content">
+            <h2 class="page-text title" id="page2Title">Special Moments</h2>
+            <div class="page-image" id="page2Image"></div>
+            <p class="page-text" id="page2Text">Every year brings new adventures and cherished memories.</p>
+          </div>
+        </div>
+
+        <!-- Page 3 -->
+        <div class="page inner hidden" id="page3">
+          <div class="page-content">
+            <h2 class="page-text title" id="page3Title">A Wish for You</h2>
+            <p class="page-text" id="page3Text">May this year bring you endless happiness, success, and all the dreams you desire.</p>
+            <p class="page-text subtitle" id="page3Subtitle">With love and warm wishes</p>
+          </div>
+        </div>
+
+        <!-- Back Cover -->
+        <div class="page cover-back" id="page4">
+          <div class="back-cover-text" id="backCoverText">
+            <p>✦ CELEBRATE LIFE ✦</p>
+            <p style="margin-top: 16px; font-size: 0.8rem; opacity: 0.7;">This interactive book is a special gift created with love.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page Navigation -->
+    <div class="page-nav" id="pageNav">
+      <button class="nav-btn" id="prevBtn" aria-label="Previous page">‹</button>
+      <div class="page-indicator">
+        <span id="pageCount">1</span> / 4
+      </div>
+      <button class="nav-btn" id="nextBtn" aria-label="Next page">›</button>
+    </div>
+  </div>
+
+  <!-- Admin Button -->
+  <button class="admin-btn" id="adminToggle" aria-label="Open admin panel">⚙️</button>
+
+  <!-- Admin Panel -->
+  <div class="admin-panel" id="adminPanel">
+    <div class="admin-header">
+      <h2>Admin Panel</h2>
+      <button class="admin-close-btn" id="adminClose" aria-label="Close admin panel">✕</button>
+    </div>
+
+    <form class="admin-form" id="adminForm">
+      <!-- Cover Section -->
+      <div class="form-section">
+        <h3>Cover</h3>
+        <div class="form-group">
+          <label for="coverTitleInput">Book Title</label>
+          <input type="text" id="coverTitleInput" placeholder="Enter book title" value="YASIR">
+        </div>
+      </div>
+
+      <!-- Page 1 Section -->
+      <div class="form-section">
+        <h3>Page 1 - Birthday Greeting</h3>
+        <div class="form-group">
+          <label for="page1TitleInput">Title</label>
+          <input type="text" id="page1TitleInput" placeholder="Enter title" value="Happy Birthday!">
+        </div>
+        <div class="form-group">
+          <label for="page1MessageInput">Message (e.g., Kurdish)</label>
+          <textarea id="page1MessageInput" placeholder="Enter birthday message">روژ بونا تە پیروز بیت یاسر</textarea>
+        </div>
+        <div class="form-group">
+          <label for="page1TextInput">Additional Text</label>
+          <textarea id="page1TextInput" placeholder="Enter additional text">Wishing you a day filled with joy, laughter, and beautiful moments.</textarea>
+        </div>
+      </div>
+
+      <!-- Page 2 Section -->
+      <div class="form-section">
+        <h3>Page 2 - Special Moments</h3>
+        <div class="form-group">
+          <label for="page2TitleInput">Title</label>
+          <input type="text" id="page2TitleInput" placeholder="Enter title" value="Special Moments">
+        </div>
+        <div class="form-group">
+          <label for="page2ImageInput">Image URL</label>
+          <input type="text" id="page2ImageInput" placeholder="Enter image URL">
+        </div>
+        <div class="form-group">
+          <label for="page2TextInput">Description</label>
+          <textarea id="page2TextInput" placeholder="Enter description">Every year brings new adventures and cherished memories.</textarea>
+        </div>
+      </div>
+
+      <!-- Page 3 Section -->
+      <div class="form-section">
+        <h3>Page 3 - Wishes</h3>
+        <div class="form-group">
+          <label for="page3TitleInput">Title</label>
+          <input type="text" id="page3TitleInput" placeholder="Enter title" value="A Wish for You">
+        </div>
+        <div class="form-group">
+          <label for="page3TextInput">Wish Message</label>
+          <textarea id="page3TextInput" placeholder="Enter wish">May this year bring you endless happiness, success, and all the dreams you desire.</textarea>
+        </div>
+        <div class="form-group">
+          <label for="page3SubtitleInput">Closing</label>
+          <input type="text" id="page3SubtitleInput" placeholder="Enter closing" value="With love and warm wishes">
+        </div>
+      </div>
+
+      <!-- Background Section -->
+      <div class="form-section">
+        <h3>Background</h3>
+        <div class="form-group">
+          <label for="bgImageInput">Background Image URL</label>
+          <input type="text" id="bgImageInput" placeholder="Enter background image URL" value="">
+        </div>
+        <p style="font-size: 0.8rem; color: #666; margin-top: 8px;">Paste the image URL (e.g., from your uploaded image)</p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="admin-actions">
+        <button type="submit" class="admin-btn-primary">Save Changes</button>
+        <button type="button" class="admin-btn-secondary" id="resetBtn">Reset to Default</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    // ========================================
+    // STATE MANAGEMENT
+    // ========================================
+
+    const STORAGE_KEY = 'birthday-book-state';
+
+    const defaultState = {
+      coverTitle: 'YASIR',
+      page1: {
+        title: 'Happy Birthday!',
+        message: 'روژ بونا تە پیروز بیت یاسر',
+        text: 'Wishing you a day filled with joy, laughter, and beautiful moments.'
+      },
+      page2: {
+        title: 'Special Moments',
+        image: '',
+        text: 'Every year brings new adventures and cherished memories.'
+      },
+      page3: {
+        title: 'A Wish for You',
+        text: 'May this year bring you endless happiness, success, and all the dreams you desire.',
+        subtitle: 'With love and warm wishes'
+      },
+      bgImage: ''
+    };
+
+    let currentState = { ...defaultState };
+    let currentPageIndex = 0;
+
+    // ========================================
+    // STORAGE FUNCTIONS
+    // ========================================
+
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          currentState = { ...defaultState, ...JSON.parse(saved) };
+        } catch (e) {
+          console.error('Failed to load state:', e);
+          currentState = { ...defaultState };
+        }
+      }
+      renderContent();
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(currentState));
+    }
+
+    function resetState() {
+      currentState = { ...defaultState };
+      saveState();
+      renderContent();
+      currentPageIndex = 0;
+      renderPageNav();
+      updateBook();
+    }
+
+    // ========================================
+    // RENDER FUNCTIONS
+    // ========================================
+
+    function renderContent() {
+      // Cover
+      document.getElementById('coverTitle').textContent = currentState.coverTitle;
+
+      // Page 1
+      document.getElementById('page1Title').textContent = currentState.page1.title;
+      document.getElementById('page1Message').textContent = currentState.page1.message;
+      document.getElementById('page1Text').textContent = currentState.page1.text;
+
+      // Page 2
+      document.getElementById('page2Title').textContent = currentState.page2.title;
+      document.getElementById('page2Text').textContent = currentState.page2.text;
+      if (currentState.page2.image) {
+        document.getElementById('page2Image').style.backgroundImage = `url('${currentState.page2.image}')`;
+      }
+
+      // Page 3
+      document.getElementById('page3Title').textContent = currentState.page3.title;
+      document.getElementById('page3Text').textContent = currentState.page3.text;
+      document.getElementById('page3Subtitle').textContent = currentState.page3.subtitle;
+
+      // Background
+      if (currentState.bgImage) {
+        document.getElementById('sceneBg').style.backgroundImage = `url('${currentState.bgImage}')`;
+      }
+    }
+
+    function renderPageNav() {
+      document.getElementById('pageCount').textContent = currentPageIndex + 1;
+      document.getElementById('prevBtn').disabled = currentPageIndex === 0;
+      document.getElementById('nextBtn').disabled = currentPageIndex === 4;
+    }
+
+    // ========================================
+    // BOOK INTERACTION
+    // ========================================
+
+    const book = document.getElementById('book');
+    const bookContainer = document.getElementById('bookContainer');
+    const pageNav = document.getElementById('pageNav');
+
+    function updateBook() {
+      const pages = document.querySelectorAll('.page');
+      pages.forEach((page, index) => {
+        if (index <= currentPageIndex) {
+          page.classList.remove('hidden');
+        } else {
+          page.classList.add('hidden');
+        }
+      });
+    }
+
+    function goToPage(pageIndex) {
+      if (pageIndex < 0 || pageIndex > 4) return;
+      
+      // Add flip animation
+      book.classList.add('flipping');
+      setTimeout(() => {
+        currentPageIndex = pageIndex;
+        updateBook();
+        renderPageNav();
+        book.classList.remove('flipping');
+      }, 500);
+    }
+
+    function nextPage() {
+      if (currentPageIndex < 4) {
+        goToPage(currentPageIndex + 1);
+      }
+    }
+
+    function prevPage() {
+      if (currentPageIndex > 0) {
+        goToPage(currentPageIndex - 1);
+      }
+    }
+
+    // Book click to next page
+    bookContainer.addEventListener('click', (e) => {
+      if (!document.getElementById('adminPanel').classList.contains('open')) {
+        nextPage();
+      }
+    });
+
+    // Navigation buttons
+    document.getElementById('nextBtn').addEventListener('click', nextPage);
+    document.getElementById('prevBtn').addEventListener('click', prevPage);
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (!document.getElementById('adminPanel').classList.contains('open')) {
+        if (e.key === 'ArrowRight') nextPage();
+        if (e.key === 'ArrowLeft') prevPage();
+      }
+    });
+
+    // ========================================
+    // ADMIN PANEL
+    // ========================================
+
+    const adminToggle = document.getElementById('adminToggle');
+    const adminPanel = document.getElementById('adminPanel');
+    const adminClose = document.getElementById('adminClose');
+    const adminForm = document.getElementById('adminForm');
+    const resetBtn = document.getElementById('resetBtn');
+
+    adminToggle.addEventListener('click', () => {
+      adminPanel.classList.toggle('open');
+    });
+
+    adminClose.addEventListener('click', () => {
+      adminPanel.classList.remove('open');
+    });
+
+    // Load form values from current state
+    function loadFormValues() {
+      document.getElementById('coverTitleInput').value = currentState.coverTitle;
+      document.getElementById('page1TitleInput').value = currentState.page1.title;
+      document.getElementById('page1MessageInput').value = currentState.page1.message;
+      document.getElementById('page1TextInput').value = currentState.page1.text;
+      document.getElementById('page2TitleInput').value = currentState.page2.title;
+      document.getElementById('page2ImageInput').value = currentState.page2.image;
+      document.getElementById('page2TextInput').value = currentState.page2.text;
+      document.getElementById('page3TitleInput').value = currentState.page3.title;
+      document.getElementById('page3TextInput').value = currentState.page3.text;
+      document.getElementById('page3SubtitleInput').value = currentState.page3.subtitle;
+      document.getElementById('bgImageInput').value = currentState.bgImage;
+    }
+
+    // Handle form submission
+    adminForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      currentState = {
+        coverTitle: document.getElementById('coverTitleInput').value.trim() || defaultState.coverTitle,
+        page1: {
+          title: document.getElementById('page1TitleInput').value.trim() || defaultState.page1.title,
+          message: document.getElementById('page1MessageInput').value.trim() || defaultState.page1.message,
+          text: document.getElementById('page1TextInput').value.trim() || defaultState.page1.text
+        },
+        page2: {
+          title: document.getElementById('page2TitleInput').value.trim() || defaultState.page2.title,
+          image: document.getElementById('page2ImageInput').value.trim(),
+          text: document.getElementById('page2TextInput').value.trim() || defaultState.page2.text
+        },
+        page3: {
+          title: document.getElementById('page3TitleInput').value.trim() || defaultState.page3.title,
+          text: document.getElementById('page3TextInput').value.trim() || defaultState.page3.text,
+          subtitle: document.getElementById('page3SubtitleInput').value.trim() || defaultState.page3.subtitle
+        },
+        bgImage: document.getElementById('bgImageInput').value.trim()
+      };
+
+      saveState();
+      renderContent();
+      adminPanel.classList.remove('open');
+
+      // Show success feedback
+      showNotification('Changes saved successfully!');
+    });
+
+    // Reset button
+    resetBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset all changes to default?')) {
+        resetState();
+        loadFormValues();
+        adminPanel.classList.remove('open');
+        showNotification('Reset to default settings!');
+      }
+    });
+
+    // ========================================
+    // NOTIFICATIONS
+    // ========================================
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #d4a85d, #e0b866);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 8px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        z-index: 100;
+        font-weight: 600;
+        animation: slideIn 0.4s ease-out;
+      `;
+      notification.textContent = message;
+      document.body.appendChild(notification);
+
+      setTimeout(() => {
+        notification.style.animation = 'slideOut 0.4s ease-in';
+        setTimeout(() => notification.remove(), 400);
+      }, 3000);
+    }
+
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+
+    // ========================================
+    // INITIALIZATION
+    // ========================================
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      loadFormValues();
+      renderPageNav();
+      updateBook();
+    });
+
+    // Close admin panel on outside click
+    document.addEventListener('click', (e) => {
+      if (!adminPanel.contains(e.target) && !adminToggle.contains(e.target)) {
+        adminPanel.classList.remove('open');
+      }
+    });
+  </script>
+</body>
+</html>
